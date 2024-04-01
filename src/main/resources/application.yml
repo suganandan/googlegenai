@@ -1,0 +1,26 @@
+server:
+  port: 8080
+
+spring:
+  mvc:
+    view:
+      prefix: /WEB-INF/jsp/
+      suffix: .jsp
+    
+
+
+  
+genai:
+  projectId: suga-new01
+  location: us-central1
+  modelname: gemini-pro-vision
+  publisher: google
+  latestmodel: text-bison    
+
+sum:
+  temparature: 0.2
+  tokens: 512
+  topP: 0.2
+  topK: 10  
+
+
