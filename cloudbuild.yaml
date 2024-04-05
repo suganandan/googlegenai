@@ -1,18 +1,20 @@
 steps:
-# Step 1: Building the Docker image
-- name: 'maven:3.8.6-openjdk-17-slim'
-  entrypoint: 'mvn'
-  args: ['clean', 'package']
+  # Step 1: Building the Docker image
+  - name: 'maven:3.8.6-openjdk-17-slim'
+    entrypoint: 'mvn'
+    args: ['clean', 'package']
   
   # Step 2: Building the Docker image
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA', '.']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA', '.']
 
   # Step 3: Pushing the Docker image to Google Container Registry (GCR)
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA']
    # Step 4: Deploying the application to Kubernetes Engine
-- name: 'gcr.io/cloud-builders/kubectl'
-  args: ['apply', '-f', 'deployment.yaml']
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: ['apply', '-f', 'deployment.yaml']
 images:
-- 'us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA'
+
+
