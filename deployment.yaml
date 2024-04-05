@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: googlegenai-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: googlegenai-app
+  template:
+    metadata:
+      labels:
+        app: googlegenai-app
+    spec:
+      containers:
+      - name: googlegenai-app
+        image: us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA
+        ports:
+        - containerPort: 8080
