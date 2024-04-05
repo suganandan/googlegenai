@@ -8,13 +8,8 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA', '.']
 
-  # Step 3: Pushing the Docker image to Google Container Registry (GCR)
+  # Step 3: Pushing the Docker image to artifact registry<<gitsourcerepo>> image name <<googlegenai-image>>
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA']
-   # Step 4: Deploying the application to Kubernetes Engine
-  - name: 'gcr.io/cloud-builders/kubectl'
-    args: ['apply', '-f', 'deployment.yaml']
-images:
-  - 'us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA'
-
+ 
 
