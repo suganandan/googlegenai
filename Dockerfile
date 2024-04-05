@@ -1,12 +1,8 @@
 #Start with a base image containing Java runtime
-FROM openjdk:17-jdk-slim
+FROM openjdk:17-jdk-alpine
 
 #Information who maintains the image
 MAINTAINER suga.com
-
-
-# Use official OpenJDK image as a base image
-FROM openjdk:11-jre-slim
 
 # Set the working directory in the container
 WORKDIR /app
