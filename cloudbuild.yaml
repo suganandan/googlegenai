@@ -1,4 +1,14 @@
 steps:
+  - name: 'gcr.io/$PROJECT_ID/sonar-scanner:latest'
+    args:
+    - '-Dsonar.host.url=https://sonarcloud.io'
+    - '-Dsonar.login=suganandan@hotmail.com'
+    - '-Dsonar.projectKey={specify}'
+    - '-Dsonar.organization=suganandan'
+    - '-Dsonar.sources=.'
+tags: ['cloud-builders-community']
+
+steps:
   # Step 1: Building the Docker image
   - name: 'maven:3.8.3-openjdk-17'
     entrypoint: 'mvn'

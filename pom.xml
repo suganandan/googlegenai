@@ -15,219 +15,169 @@
 	<name>googlegenai</name>
 	<description>Google Gen AI Demo</description>
 	<properties>
-
 		<java.version>17</java.version>
-
 		<spring-cloud-gcp.version>5.0.0</spring-cloud-gcp.version>
-
 		<spring-cloud.version>2023.0.0</spring-cloud.version>
-
+		<jacoco.version>0.8.6</jacoco.version>
+		<sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+		<sonar.jacoco.reportPath>${project.basedir}/../target/jacoco.exec</sonar.jacoco.reportPath>
+		<sonar.language>java</sonar.language>
 	</properties>
 
 	<dependencies>
-
 		<dependency>
-
 			<groupId>org.springframework.boot</groupId>
-
 			<artifactId>spring-boot-starter-actuator</artifactId>
-
 		</dependency>
 
 		<dependency>
-
 			<groupId>com.google.cloud</groupId>
-
 			<artifactId>google-cloud-vertexai</artifactId>
-
 			<version>0.3.0</version>
-
 		</dependency>
 
 		<dependency>
-
 			<groupId>org.json</groupId>
-
 			<artifactId>json</artifactId>
-
 			<version>20231013</version>
-
 		</dependency>
 
 
 		<dependency>
-
 			<groupId>com.google.code.gson</groupId>
-
 			<artifactId>gson</artifactId>
-
 		</dependency>
 
 
 		<dependency>
-
 			<groupId>org.springframework.boot</groupId>
-
 			<artifactId>spring-boot-starter-web</artifactId>
-
 		</dependency>
 
 		<dependency>
-
 			<groupId>com.google.cloud</groupId>
-
 			<artifactId>spring-cloud-gcp-starter</artifactId>
-
 		</dependency>
 
 		<dependency>
-
 			<groupId>org.apache.tomcat.embed</groupId>
-
 			<artifactId>tomcat-embed-jasper</artifactId>
-
 		</dependency>
 
 		<dependency>
-
 			<groupId>com.google.protobuf</groupId>
-
 			<artifactId>protobuf-java-util</artifactId>
-
 		</dependency>
 
 		<dependency>
-
 			<groupId>com.google.cloud</groupId>
-
 			<artifactId>google-cloud-aiplatform</artifactId>
-
 		</dependency>
 
 		<dependency>
-
 			<groupId>org.springframework.boot</groupId>
-
 			<artifactId>spring-boot-devtools</artifactId>
-
 			<scope>runtime</scope>
-
 			<optional>true</optional>
-
 		</dependency>
 
 		<dependency>
-
 			<groupId>org.springdoc</groupId>
-
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-
 			<version>2.3.0</version>
-
 		</dependency>
 
 
 		<dependency>
-
 			<groupId>commons-io</groupId>
-
 			<artifactId>commons-io</artifactId>
-
 			<version>2.12.0</version>
-
 		</dependency>
 
 		<dependency>
-
 			<groupId>org.projectlombok</groupId>
-
 			<artifactId>lombok</artifactId>
-
 			<optional>true</optional>
-
 		</dependency>
 
 		<dependency>
-
 			<groupId>org.springframework.boot</groupId>
-
 			<artifactId>spring-boot-starter-test</artifactId>
-
 			<scope>test</scope>
-
 		</dependency>
 
 	</dependencies>
 
 	<dependencyManagement>
-
 		<dependencies>
-
 			<dependency>
-
 				<groupId>org.springframework.cloud</groupId>
-
 				<artifactId>spring-cloud-dependencies</artifactId>
-
 				<version>${spring-cloud.version}</version>
-
 				<type>pom</type>
-
 				<scope>import</scope>
-
 			</dependency>
 
 			<dependency>
-
 				<groupId>com.google.cloud</groupId>
-
 				<artifactId>spring-cloud-gcp-dependencies</artifactId>
-
 				<version>${spring-cloud-gcp.version}</version>
-
 				<type>pom</type>
-
 				<scope>import</scope>
-
 			</dependency>
-
 		</dependencies>
 
 	</dependencyManagement>
 
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.jacoco</groupId>
+					<artifactId>jacoco-maven-plugin</artifactId>
+					<version>0.8.8</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 
 		<plugins>
-
 			<plugin>
-
 				<groupId>org.springframework.boot</groupId>
-
 				<artifactId>spring-boot-maven-plugin</artifactId>
-
 				<configuration>
-
 					<excludes>
-
 						<exclude>
-
 							<groupId>org.projectlombok</groupId>
-
 							<artifactId>lombok</artifactId>
-
 						</exclude>
-
 					</excludes>
 					<image>
 						<name>suganandan/${project.artifactId}:02</name>
 					</image>
-
 				</configuration>
-
 			</plugin>
-
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.version}</version>
+				<executions>
+					<execution>
+						<id>jacoco-initialize</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>jacoco-site</id>
+						<phase>package</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
-
 	</build>
 	<repositories>
 		<repository>
