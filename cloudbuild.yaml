@@ -3,7 +3,7 @@ steps:
     args:
     - '-Dsonar.host.url=https://sonarcloud.io'
     - '-Dsonar.login=suganandan@hotmail.com'
-    - '-Dsonar.projectKey={specify}'
+    - '-Dsonar.projectKey=suganandan_googlegenai'
     - '-Dsonar.organization=suganandan'
     - '-Dsonar.sources=.'
 tags: ['cloud-builders-community']
