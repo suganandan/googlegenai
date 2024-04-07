@@ -115,7 +115,7 @@ public class SummaryGenController implements ErrorController{
 						linesOfMaxSize.add(completeData.substring(i, Math.min(i + maxSize, completeData.length())));
 						i += maxSize;
 					}
-					System.out.println("Size :" + linesOfMaxSize.size());
+					System.out.println("Size  of the file:" + linesOfMaxSize.size());
 
 					String resOutput = null;
 					try (VertexAI vertexAI = new VertexAI(projectId, location)) {
