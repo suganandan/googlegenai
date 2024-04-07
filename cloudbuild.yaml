@@ -15,6 +15,17 @@ steps:
     - '-Dsonar.projectKey={specify}'
     - '-Dsonar.organization=suganandan'
     - '-Dsonar.sources=.'
+
+  - name: 'gcr.io/sonarqube-community/sonar-scanner-cli'
+    entrypoint: 'bin/sonar-scanner'
+    args: [
+      '-Dsonar.projectKey=suganandan_googlegenai',
+      '-Dsonar.organization=suganandan',
+      '-Dsonar.sources=.',
+      '-Dsonar.java.binaries=target/classes',
+      '-Dsonar.host.url=https://sonarcloud.io',
+      '-Dsonar.login=suganandan@hotmail.com'
+    ]
     
   # Step 3: Pushing the Docker image to artifact registry<<gitsourcerepo>> image name <<googlegenai-image>>
   - name: 'gcr.io/cloud-builders/docker'
