@@ -8,14 +8,6 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA', '.']
   
-  - name: 'gcr.io/$PROJECT_ID/sonar-scanner:latest'
-    args:
-    - '-Dsonar.host.url=https://sonarcloud.io'
-    - '-Dsonar.login=suganandan@hotmail.com'
-    - '-Dsonar.projectKey={specify}'
-    - '-Dsonar.organization=suganandan'
-    - '-Dsonar.sources=.'
-
   - name: 'gcr.io/sonarqube-community/sonar-scanner-cli'
     entrypoint: 'bin/sonar-scanner'
     args: [

@@ -1,4 +1,0 @@
-Microservices are an architectural approach that decomposes applications into small, independent services that communicate over a network. These services are modular, loosely coupled, and can be independently developed, deployed, and scaled. Microservices offer flexibility, scalability, and easier maintenance by enabling the use of various technologies and the decoupling of services. They contribute to system resilience by minimizing the impact of failures on the entire system. The continuous improvement nature of microservices allows for rapid development and adaptation to changing requirements. for each service.
-* Independent updates: changes to one microservice don't affect others.
-* Scalability: adding or removing instances of a microservice to handle demand.
-* Continuous improvement: independent development and updates foster ongoing evolution.
