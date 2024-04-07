@@ -7,18 +7,19 @@ steps:
   # Step 2: Building the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA', '.']
-  
-  - name: 'gcr.io/sonarqube-community/sonar-scanner-cli'
-    entrypoint: 'bin/sonar-scanner'
-    args: [
-      '-Dsonar.projectKey=suganandan_googlegenai',
-      '-Dsonar.organization=suganandan',
-      '-Dsonar.sources=.',
-      '-Dsonar.java.binaries=target/classes',
-      '-Dsonar.host.url=https://sonarcloud.io',
-      '-Dsonar.login=suganandan@hotmail.com'
-    ]
-    
+ 
+  - name: gcr.io/cloud-builders/sonarscanner
+    entrypoint: sonar-scanner
+    args:
+      - -Dsonar.projectKey=suganandan_googlegenai  # Replace with your SonarCloud project key
+      - -Dsonar.organization=suganandan  # Replace with your SonarCloud organization
+      - -Dsonar.sources=.  # Path to the source code
+      - -Dsonar.host.url=https://sonarcloud.io  # Replace with the SonarCloud host URL
+      - -Dsonar.login=suganandan@hotmail.com  # Replace with the SonarCloud authentication token
+      - -Dsonar.java.binaries=target/classes  # Path to the compiled Java classes
+      - -Dsonar.java.testBinaries=target/test-classes  # Path to the compiled Java test classes
+      - -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info  # Path to the LCOV coverage report
+      - -Dsonar.typescript.reportPaths=target/tscoverage.json  # Path to the TypeScript coverage report   
   # Step 3: Pushing the Docker image to artifact registry<<gitsourcerepo>> image name <<googlegenai-image>>
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA']
