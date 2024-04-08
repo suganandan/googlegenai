@@ -3,14 +3,17 @@ steps:
   # Step 1: Building the Docker image
   - name: 'maven:3.8.3-openjdk-17'
     entrypoint: 'mvn'
-    args: ['clean','test', 'package','sonar:sonar', '-Pcoverage']
-    
+    args: ['clean','test', 'package']
+ # Step 2: Building the Docker image   
+  - name: 'maven:3.8.3-openjdk-17'
+    entrypoint: 'mvn'
+    args: ['sonar:sonar', '-Pcoverage']  
   
-  # Step 2: Building the Docker image
+  # Step 3: Building the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA', '.']
  
-  # Step 3: Pushing the Docker image to artifact registry<<gitsourcerepo>> image name <<googlegenai-image>>
+  # Step 4: Pushing the Docker image to artifact registry<<gitsourcerepo>> image name <<googlegenai-image>>
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA']
  
