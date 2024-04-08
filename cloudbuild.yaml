@@ -11,8 +11,7 @@ steps:
     args: ['test', 'jacoco:report']
 
   # Step 3: Upload coverage reports to SonarCloud
-  - name: 'gcr.io/sonarqube/sonar-scanner'
-    entrypoint: '/opt/sonar-scanner/bin/sonar-scanner'
+  - name: 'gcr.io/google-containers/sonarqube'
     args: ['-Dsonar.projectKey=suganandan_googlegenai', '-Dsonar.organization=suganandan', '-Dsonar.sources=.', '-Dsonar.tests=.', '-Dsonar.java.binaries=.', '-Dsonar.java.coveragePlugin=jacoco', '-Dsonar.jacoco.reportPaths=target/site/jacoco/jacoco.xml', '-Dsonar.host.url=https://sonarcloud.io', '-Dsonar.login=suganandan@hotmail.com']
   
   # Step 4: Building the Docker image
