@@ -3,17 +3,20 @@ steps:
   # Step 1: Building the Docker image
   - name: 'maven:3.8.3-openjdk-17'
     entrypoint: 'mvn'
-    args: ['clean','test', 'package']
- # Step 2: Building the Docker image   
-  - name: 'maven:3.8.3-openjdk-17'
-    entrypoint: 'mvn'
-    args: ['sonar:sonar', '-Pcoverage']  
+    args: ['mvn', 'clean', 'install', 'sonar:sonar', '-Pcoverage']
+    env:
+      '-Dsonar.projectKey=suganandan_googlegenai',
+      '-Dsonar.organization=suganandan',
+      '-Dsonar.sources=.',
+      '-Dsonar.java.binaries=target/classes',
+      '-Dsonar.host.url=https://sonarcloud.io',
+      '-Dsonar.login=suganandan@hotmail.com'
   
-  # Step 3: Building the Docker image
+  # Step 2: Building the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA', '.']
  
-  # Step 4: Pushing the Docker image to artifact registry<<gitsourcerepo>> image name <<googlegenai-image>>
+  # Step 3: Pushing the Docker image to artifact registry<<gitsourcerepo>> image name <<googlegenai-image>>
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA']
  
