@@ -3,8 +3,29 @@ steps:
   # Step 1: Building the Docker image
   - name: 'maven:3.8.3-openjdk-17'
     entrypoint: 'mvn'
-    args: ['clean','test', 'package','sonar:sonar', '-Pcoverage','-Dsonar.projectKey=suganandan_googlegenai','-Dsonar.organization=suganandan','-Dsonar.sources=.','-Dsonar.java.binaries=target/classes','-Dsonar.host.url=https://sonarcloud.io','-Dsonar.login=suganandan@hotmail.com']
-     
+    args: ['clean','test', 'package']
+# Install the SonarCloud CLI
+  - name: gcr.io/google-containers/gcloud
+    entrypoint: gcloud
+    args: ["components", "install", "--version=latest", "cloud-sdk"]
+  - name: gcr.io/google-containers/gcloud
+    entrypoint: gcloud
+    args: ["components", "install", "--version=latest", "sonar-scanner-cli"]
+  - name: gcr.io/google-containers/gcloud
+    entrypoint: gcloud
+    args: ["auth", "configure-docker"]
+  # Run code analysis with SonarCloud
+  - name: gcr.io/google-containers/gcloud
+    entrypoint: sonar-scanner
+    args:
+      - "-Dsonar.projectKey=suganandan_googlegenai"
+      - "-Dsonar.organization=suganandan"
+      - "-Dsonar.host.url=https://sonarcloud.io"
+      - "-Dsonar.sources=."
+      - "-Dsonar.surefire.reportsPath=target/surefire-reports"
+      - "-Dsonar.jacoco.reportsPath=target/coverage/jacoco.exec"
+      - "-Dsonar.java.binaries=target/spring-app.jar"
+      - "-Dsonar.login=suganandan@hotmail.com"       
    
   # Step 2: Building the Docker image
   - name: 'gcr.io/cloud-builders/docker'
