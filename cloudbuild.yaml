@@ -10,15 +10,11 @@ steps:
   - name: 'gcr.io/cloud-builders/mvn'
     args: ['test', 'jacoco:report']
 
-  # Step 3: Upload coverage reports to SonarCloud
-  - name: 'gcr.io/google-containers/sonarqube'
-    args: ['-Dsonar.projectKey=suganandan_googlegenai', '-Dsonar.organization=suganandan', '-Dsonar.sources=.', '-Dsonar.tests=.', '-Dsonar.java.binaries=.', '-Dsonar.java.coveragePlugin=jacoco', '-Dsonar.jacoco.reportPaths=target/site/jacoco/jacoco.xml', '-Dsonar.host.url=https://sonarcloud.io', '-Dsonar.login=suganandan@hotmail.com']
-  
-  # Step 4: Building the Docker image
+  # Step 3: Building the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA', '.']
  
-  # Step 5: Pushing the Docker image to artifact registry<<gitsourcerepo>> image name <<googlegenai-image>>
+  # Step 4: Pushing the Docker image to artifact registry<<gitsourcerepo>> image name <<googlegenai-image>>
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA']
  
