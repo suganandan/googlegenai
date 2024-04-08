@@ -4,8 +4,6 @@ steps:
   - name: 'maven:3.8.3-openjdk-17'
     entrypoint: 'mvn'
     args: ['clean','test', 'package','sonar']
-    
-  
   # Step 2: Building the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA', '.']
