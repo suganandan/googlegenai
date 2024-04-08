@@ -3,29 +3,16 @@ steps:
   # Step 1: Building the Docker image
   - name: 'maven:3.8.3-openjdk-17'
     entrypoint: 'mvn'
-    args: ['clean', 'package']
+    args: ['clean','test', 'package','sonar:sonar', '-Pcoverage']
+    env: 
+     - '-Dsonar.projectKey=suganandan_googlegenai',
+     - '-Dsonar.organization=suganandan',
+     - '-Dsonar.sources=.',
+     - '-Dsonar.java.binaries=target/classes',
+     - '-Dsonar.host.url=https://sonarcloud.io',
+     - '-Dsonar.login=suganandan@hotmail.com'
     
-    # Install the SonarCloud CLI
-  - name: gcr.io/google-containers/gcloud
-    entrypoint: gcloud
-    args: ["components", "install", "--version=latest", "cloud-sdk"]
-  - name: gcr.io/google-containers/gcloud
-    entrypoint: gcloud
-    args: ["components", "install", "--version=latest", "sonar-scanner-cli"]
-  - name: gcr.io/google-containers/gcloud
-    entrypoint: gcloud
-    args: ["auth", "configure-docker"]
-  # Run code analysis with SonarCloud
-  - name: gcr.io/google-containers/gcloud
-    entrypoint: sonar-scanner
-    args:
-      '-Dsonar.projectKey=suganandan_googlegenai',
-      '-Dsonar.organization=suganandan',
-      '-Dsonar.sources=.',
-      '-Dsonar.java.binaries=target/classes',
-      '-Dsonar.host.url=https://sonarcloud.io',
-      '-Dsonar.login=suganandan@hotmail.com'
-  
+   
   # Step 2: Building the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA', '.']
