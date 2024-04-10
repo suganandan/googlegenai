@@ -19,6 +19,7 @@
 		<spring-cloud-gcp.version>5.0.0</spring-cloud-gcp.version>
 		<spring-cloud.version>2023.0.0</spring-cloud.version>
 		<jacoco.version>0.8.6</jacoco.version>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 		<sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 		<sonar.language>java</sonar.language>
