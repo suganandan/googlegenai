@@ -1,18 +1,17 @@
 steps:
-
   # Step 1: Building the Docker image
   - name: 'maven:3.8.3-openjdk-17'
     entrypoint: 'mvn'
-    args: ['clean','install']
- 
- 
- # Step 2: Run tests with coverage and generate coverage reports
+    args: ['clean', 'install']
+
+  # Step 2: Run tests with coverage and generate coverage reports
   - name: 'gcr.io/cloud-builders/mvn'
     args: ['test', 'jacoco:report']
-    
+
+  # Step 3: Run SonarQube analysis
   - name: 'gcr.io/cloud-builders/mvn'
     entrypoint: 'bash'
-    args:
+    args: 
       - '-c'
       - |
         mvn sonar:sonar \
@@ -22,13 +21,11 @@ steps:
           -Dsonar.login=suganandan@hotmail.com \
           -Dsonar.java.coveragePlugin=jacoco \
           -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-    
+
   # Step 4: Building the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA', '.']
- 
-  # Step 5: Pushing the Docker image to artifact registry<<gitsourcerepo>> image name <<googlegenai-image>>
+
+  # Step 5: Pushing the Docker image to artifact registry <<gitsourcerepo>> image name <<googlegenai-image>>
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/gitsourcerepo/googlegenai-image:$SHORT_SHA']
- 
-
