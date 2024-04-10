@@ -9,7 +9,9 @@ steps:
  # Step 2: Run tests with coverage and generate coverage reports
   - name: 'gcr.io/cloud-builders/mvn'
     args: ['test', 'jacoco:report']
-
+    
+  - name: 'gcr.io/suga-new01/sonar-scanner'
+    args: ['sonar-scanner']
     
   # Step 4: Building the Docker image
   - name: 'gcr.io/cloud-builders/docker'
