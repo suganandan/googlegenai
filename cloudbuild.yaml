@@ -8,19 +8,7 @@ steps:
   - name: 'gcr.io/cloud-builders/mvn'
     args: ['test', 'jacoco:report']
 
-  # Step 3: Run SonarQube analysis
-  - name: 'gcr.io/cloud-builders/mvn'
-    entrypoint: 'bash'
-    args: 
-      - '-c'
-      - |
-        mvn sonar:sonar \
-          -Dsonar.projectKey=suganandan \
-          -Dsonar.organization=suganandan_googlegenai \
-          -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.login=suganandan@hotmail.com \
-          -Dsonar.java.coveragePlugin=jacoco \
-          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+  
 
   # Step 4: Building the Docker image
   - name: 'gcr.io/cloud-builders/docker'
