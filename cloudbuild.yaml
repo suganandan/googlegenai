@@ -17,7 +17,6 @@ steps:
     - '-Dsonar.projectKey=suganandan_googlegenai'
     - '-Dsonar.organization=suganandan'
     - '-Dsonar.sources=.'
-    tags: ['cloud-builders-community']
 
   # Step 4: Building the Docker image
   - name: 'gcr.io/cloud-builders/docker'
