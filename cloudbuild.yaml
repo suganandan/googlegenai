@@ -9,19 +9,15 @@ steps:
     args: ['test', 'jacoco:report']
 
   # Step 3: Analyze code and push coverage report to SonarCloud
-  - name: 'gcr.io/sonarqube/sonar-scanner-cli:latest'
-    entrypoint: 'sonar-scanner'
-    args:
-      - '-Dsonar.projectKey=suganandan'
-      - '-Dsonar.organization=suganandan_googlegenai'
-      - '-Dsonar.host.url=https://sonarcloud.io'
-      - '-Dsonar.login=suganandan@hotmail.com'
-      - '-Dsonar.java.coveragePlugin=jacoco'
-      - '-Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml'
-      - '-Dsonar.sources=src'
-      - '-Dsonar.tests=src/test'
-      - '-Dsonar.exclusions=**/*.xml,**/*.properties,**/target/**,**/*.json'
   
+  - name: 'gcr.io/$PROJECT_ID/sonar-scanner:latest'
+    args:
+    - '-Dsonar.host.url=https://sonarcloud.io'
+    - '-Dsonar.login=suganandan@hotmail.com'
+    - '-Dsonar.projectKey=suganandan_googlegenai'
+    - '-Dsonar.organization=suganandan'
+    - '-Dsonar.sources=.'
+    tags: ['cloud-builders-community']
 
   # Step 4: Building the Docker image
   - name: 'gcr.io/cloud-builders/docker'
