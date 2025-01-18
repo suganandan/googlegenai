@@ -6,19 +6,16 @@ spring:
     view:
       prefix: /WEB-INF/jsp/
       suffix: .jsp
-    
 
-
-  
-genai:
+genAi:
   projectId: suga-new01
   location: us-central1
-  modelname: gemini-pro-vision
+  modelName: gemini-pro
   publisher: google
-  latestmodel: text-bison    
+  latestModel: gemini-2.0-flash-exp
 
 sum:
-  temparature: 0.2
+  temperature: 0.2
   tokens: 512
   topP: 0.2
   topK: 10  

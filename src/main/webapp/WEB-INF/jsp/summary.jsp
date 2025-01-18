@@ -59,7 +59,7 @@
 
 			enctype : 'multipart/form-data',
 
-			url : "/api/summaryprompt",
+			url : "/api/summary",
 
 			data : data,
 

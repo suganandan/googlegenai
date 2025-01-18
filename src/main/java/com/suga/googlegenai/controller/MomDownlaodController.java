@@ -17,13 +17,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Controller
-@RequestMapping("/api/momdownload")
+@RequestMapping("/api/mom")
 public class MomDownlaodController {
 
 @GetMapping
 public void download(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
-Path file = Paths.get("minutesofmeeting.txt");
+Path file = Paths.get("mom.txt");
 
 String contentType = Files.probeContentType(file);
 if (contentType == null) {

@@ -1,6 +1,33 @@
 package com.suga.googlegenai.controller;
 
-import java.io.ByteArrayInputStream;
+import com.google.cloud.vertexai.VertexAI;
+import com.google.cloud.vertexai.api.*;
+import com.google.cloud.vertexai.generativeai.preview.GenerativeModel;
+import com.google.gson.Gson;
+import com.google.protobuf.Value;
+import com.google.protobuf.util.JsonFormat;
+import com.suga.googlegenai.dto.ErrorResponseDto;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.springframework.boot.web.servlet.error.ErrorController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.ModelAndView;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
@@ -12,299 +39,230 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.springframework.boot.web.servlet.error.ErrorController;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.ModelAndView;
-
-import com.google.cloud.vertexai.VertexAI;
-import com.google.cloud.vertexai.api.Candidate;
-import com.google.cloud.vertexai.api.EndpointName;
-import com.google.cloud.vertexai.api.GenerateContentResponse;
-import com.google.cloud.vertexai.api.PredictResponse;
-import com.google.cloud.vertexai.api.PredictionServiceClient;
-import com.google.cloud.vertexai.api.PredictionServiceSettings;
-import com.google.cloud.vertexai.generativeai.preview.GenerativeModel;
-import com.google.gson.Gson;
-import com.google.protobuf.Value;
-import com.google.protobuf.util.JsonFormat;
-import com.suga.googlegenai.dto.ErrorResponseDto;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
 @Tag(name = "API for Summary, MOM and Mind Map Generation", description = "Generating summary, Minutes of Meeting and mind map xml  from Meeting Transcript")
 @RestController
 @RequestMapping(path = "/api")
 @Validated
 @Slf4j
-public class SummaryGenController implements ErrorController{
-	@org.springframework.beans.factory.annotation.Value("${genai.projectId}")
-	private String projectId;
-	@org.springframework.beans.factory.annotation.Value("${genai.location}")
-	private String location;
-	@org.springframework.beans.factory.annotation.Value("${genai.modelname}")
-	private String modelName;
-	@org.springframework.beans.factory.annotation.Value("${genai.publisher}")
-	private String publisher;
-	@org.springframework.beans.factory.annotation.Value("${genai.latestmodel}")
-	private String latestmodel;
-
-	@org.springframework.beans.factory.annotation.Value("${sum.temparature}")
-	private String temperature;
-	@org.springframework.beans.factory.annotation.Value("${sum.tokens}")
-	private String tokens;
-	@org.springframework.beans.factory.annotation.Value("${sum.topP}")
-	private String topp;
-	@org.springframework.beans.factory.annotation.Value("${sum.topK}")
-	private String topk;
-
-	private static final String CONTENT="content_";
-	private static final String PARTS="parts_";
-
-
-	@Setter
+public class SummaryGenController implements ErrorController {
+    private static final String CONTENT = "content_";
+    private static final String PARTS = "parts_";
+    private static final String DATA = "data_";
+    @org.springframework.beans.factory.annotation.Value("${genAi.projectId}")
+    private String projectId;
+    @org.springframework.beans.factory.annotation.Value("${genAi.location}")
+    private String location;
+    @org.springframework.beans.factory.annotation.Value("${genAi.modelName}")
+    private String modelName;
+    @org.springframework.beans.factory.annotation.Value("${genAi.publisher}")
+    private String publisher;
+    @org.springframework.beans.factory.annotation.Value("${genAi.latestModel}")
+    private String latestModel;
+    @org.springframework.beans.factory.annotation.Value("${sum.temperature}")
+    private String temperature;
+    @org.springframework.beans.factory.annotation.Value("${sum.tokens}")
+    private String tokens;
+    @org.springframework.beans.factory.annotation.Value("${sum.topP}")
+    private String topP;
+    @org.springframework.beans.factory.annotation.Value("${sum.topK}")
+    private String topK;
+    @Setter
     @Getter
     private String instance;
-	
-	 private static final String PATH = "/error";
 
-	    @RequestMapping(value = PATH)
-	    public void error(HttpServletResponse response) throws IOException {
-	         response.sendRedirect("/");   
-	    }
+    @RequestMapping(value = "/error")
+    public void error(HttpServletResponse response) throws IOException {
+        response.sendRedirect("/");
+    }
 
-	    public String getErrorPath() {
-	        return PATH;
-	    }
-	
-
-	@GetMapping("/searchai")
-	public ModelAndView getSearchAI() {
-		return new ModelAndView("chatsummaryprompt");
-	}
-
-	@Operation(summary = "Summary Geneartion API", description = "REST API to populate summary for the uploaded transcript")
-	@ApiResponses({ @ApiResponse(responseCode = "200", description = "HTTP Status OK"),
-			@ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
-
-	@PostMapping("/summaryprompt")
-	public ResponseEntity<String> getSummaryPrompt(@RequestParam("files") MultipartFile[] uploadFiles,
-												   HttpServletRequest request, HttpServletResponse response) throws IOException {
-		StringBuilder responseData = new StringBuilder();
-		StringBuilder summaryContent = new StringBuilder();
-
-		for (MultipartFile file : uploadFiles) {
-			if (!file.isEmpty()) {
-				try {
-					String fileContent = new String(file.getBytes(), StandardCharsets.UTF_8);
-
-					List<String> contentChunks = new ArrayList<>();
-					int chunkSize = 4000;
-					for (int i = 0; i < fileContent.length(); i += chunkSize) {
-						contentChunks.add(fileContent.substring(i, Math.min(i + chunkSize, fileContent.length())));
-					}
-
-					log.info("Number of chunks: {}", contentChunks.size());
-
-					try (VertexAI vertexAI = new VertexAI(projectId, location)) {
-						GenerativeModel model = new GenerativeModel(modelName, vertexAI);
-
-						for (String chunk : contentChunks) {
-							String prompt = "Please provide a short summary for the following article:\n" + chunk;
-
-							GenerateContentResponse aiResponse = model.generateContent(prompt);
-
-							for (Candidate candidate : aiResponse.getCandidatesList()) {
-								JSONObject candidateJson = new JSONObject(new Gson().toJson(candidate));
-								JSONArray parts = candidateJson.getJSONObject(CONTENT).getJSONArray(PARTS);
-
-								for (int j = 0; j < parts.length(); j++) {
-									summaryContent.append(parts.getJSONObject(j).getString("data_"));
-								}
-							}
-						}
-					}
-
-					Path summaryFilePath = Paths.get("summary.txt");
-					Files.writeString(summaryFilePath, summaryContent.toString(), StandardCharsets.UTF_8);
-
-					responseData.append("Summary for the transcript <a href=./summarydownload>click here to download</a>")
-							.append(System.lineSeparator());
-
-					log.info("Summary generated for the transcript.");
-
-				} catch (Exception exception) {
-					log.error("Error processing file: {}", exception.getMessage(), exception);
-					responseData.append("Error: ").append(exception.getMessage()).append(System.lineSeparator());
-				}
-			}
-		}
-
-		getMom(responseData, summaryContent);
-		getMindMap(responseData, summaryContent);
-
-		log.info("Minutes of Meeting generated for the transcript.");
-
-		return ResponseEntity.status(HttpStatus.OK).body(responseData.toString());
-	}
+    public String getErrorPath() {
+        return "/error";
+    }
 
 
-	public void getMom(StringBuilder responseData, StringBuilder summaryString) throws IOException {
-		try (VertexAI vertexAI = new VertexAI(projectId, location)) {
-			String prompt = "Generate minutes of meeting with Date,Time, Meeting Particpants, Meeting Agenda summary and Action Points for the below meeting transcript.\n "
-					+ summaryString;
+    @GetMapping("/search")
+    public ModelAndView getSearchAI() {
+        return new ModelAndView("summary");
+    }
 
-			GenerativeModel model = new GenerativeModel(modelName, vertexAI);
+    @Operation(summary = "Generate Summary from Transcript", description = "API to generate a summary based on the uploaded transcript files. Accepts multiple files as input and returns the generated summary.")
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "Summary generated successfully.", content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid request. Possible reasons: no files uploaded or unsupported file type.", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error occurred while processing the request.", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))})
+    @PostMapping("/summary")
+    public ResponseEntity<String> getSummary(@RequestParam("files") MultipartFile[] uploadFiles, HttpServletRequest request, HttpServletResponse response) {
+        StringBuilder responseData = new StringBuilder();
+        StringBuilder summaryContent = new StringBuilder();
 
-			GenerateContentResponse response02 = model.generateContent(prompt);
-			List<Candidate> cand = response02.getCandidatesList();
-			for (Candidate temp : cand) {
+        for (MultipartFile file : uploadFiles) {
+            if (!file.isEmpty()) {
+                try {
+                    String fileContent = new String(file.getBytes(), StandardCharsets.UTF_8);
 
-				Gson gson = new Gson();
-				String json = gson.toJson(temp);
-				JSONObject json1 = new JSONObject(json);
+                    List<String> contentChunks = new ArrayList<>();
+                    int chunkSize = 4000;
+                    for (int i = 0; i < fileContent.length(); i += chunkSize) {
+                        contentChunks.add(fileContent.substring(i, Math.min(i + chunkSize, fileContent.length())));
+                    }
 
-				JSONArray jsontemp1 = (JSONArray) json1.getJSONObject(CONTENT).get(PARTS);
-				for (int i = 0; i < jsontemp1.length(); i++) {
-					JSONObject jsontemp2 = jsontemp1.getJSONObject(i);
+                    log.info("Number of chunks: {}", contentChunks.size());
 
-					String tempResp = jsontemp2.get("data_").toString();
-					Files.deleteIfExists(Paths.get("minutesofmeeting.txt"));
+                    try (VertexAI vertexAI = new VertexAI(projectId, location)) {
+                        GenerativeModel model = new GenerativeModel(modelName, vertexAI);
 
-					try (PrintWriter out = new PrintWriter("minutesofmeeting.txt")) {
-						out.println(tempResp);
-					}
-				}
-			}
-		}
-		responseData.append("Minutes of Meeting  <a href=/api/momdownload> click here to download</a> ");
+                        for (String chunk : contentChunks) {
+                            String prompt = "Please provide a short summary for the following article:\n" + chunk;
 
-		responseData.append(System.lineSeparator());
-	}
+                            GenerateContentResponse aiResponse = model.generateContent(prompt);
 
-	public void getMindMap(StringBuilder responseData, StringBuilder summaryString) throws IOException {
+                            for (Candidate candidate : aiResponse.getCandidatesList()) {
+                                JSONObject candidateJson = new JSONObject(new Gson().toJson(candidate));
+                                JSONArray parts = candidateJson.getJSONObject(CONTENT).getJSONArray(PARTS);
 
-		StringBuilder sbTemp = new StringBuilder();
-		try (VertexAI vertexAI = new VertexAI(projectId, location)) {
+                                for (int j = 0; j < parts.length(); j++) {
+                                    summaryContent.append(parts.getJSONObject(j).getString(DATA));
+                                }
+                            }
+                        }
+                    }
+                    Path summaryFilePath = Paths.get("summary.txt");
+                    Files.writeString(summaryFilePath, summaryContent.toString(), StandardCharsets.UTF_8);
+                    responseData.append("Summary for the transcript <a href=./summary>click here to download</a>")
+                            .append(System.lineSeparator());
+                    log.info("Summary generated for the transcript.");
 
-			String prompt = "please Provide summary for the following article \n " + summaryString;
+                } catch (Exception exception) {
+                    log.error("Error processing file: {}", exception.getMessage(), exception);
+                    responseData.append("Error: ").append(exception.getMessage()).append(System.lineSeparator());
+                }
+            }
+        }
+        try {
+            getMom(responseData, summaryContent);
+            getMindMap(responseData, summaryContent);
+        } catch (final IOException iOException) {
+            log.error(iOException.getMessage());
+        }
+        log.info("Minutes of Meeting generated for the transcript.");
+        return ResponseEntity.status(HttpStatus.OK).body(responseData.toString());
+    }
 
-			GenerativeModel model = new GenerativeModel(modelName, vertexAI);
 
-			GenerateContentResponse response01 = model.generateContent(prompt);
-			List<Candidate> cand = response01.getCandidatesList();
-			for (Candidate temp : cand) {
+    public void getMom(StringBuilder responseData, StringBuilder summaryString) throws IOException {
+        try (VertexAI vertexAI = new VertexAI(projectId, location)) {
+            String prompt = "Generate minutes of meeting with Date,Time, Meeting Particpants, Meeting Agenda summary and Action Points for the below meeting transcript.\n "
+                    + summaryString;
 
-				Gson gson = new Gson();
-				String json = gson.toJson(temp);
-				JSONObject json1 = new JSONObject(json);
+            GenerativeModel model = new GenerativeModel(modelName, vertexAI);
 
-				JSONArray jsontemp1 = (JSONArray) json1.getJSONObject(CONTENT).get(PARTS);
-				for (int i0 = 0; i0 < jsontemp1.length(); i0++) {
-					JSONObject jsontemp2 = jsontemp1.getJSONObject(i0);
+            GenerateContentResponse response02 = model.generateContent(prompt);
+            List<Candidate> candidate = response02.getCandidatesList();
+            for (Candidate temp : candidate) {
+                Gson gson = new Gson();
+                String json = gson.toJson(temp);
+                JSONObject json1 = new JSONObject(json);
 
-					String resOutput = jsontemp2.get("data_").toString();
-					sbTemp.append(resOutput);
-				}
-			}
+                JSONArray jsonArray01 = (JSONArray) json1.getJSONObject(CONTENT).get(PARTS);
+                for (int count = 0; count < jsonArray01.length(); count++) {
+                    JSONObject jsonArray02 = jsonArray01.getJSONObject(count);
+                    String tempResp = jsonArray02.get(DATA).toString();
+                    Files.deleteIfExists(Paths.get("mom.txt"));
+                    try (PrintWriter out = new PrintWriter("mom.txt")) {
+                        out.println(tempResp);
+                    }
+                }
+            }
+        }
+        responseData.append("Minutes of Meeting  <a href=/api/mom> click here to download</a> ");
+        responseData.append(System.lineSeparator());
+    }
 
-		}
+    public void getMindMap(StringBuilder responseData, StringBuilder summaryString) throws IOException {
+        try {
+            StringBuilder sbTemp = new StringBuilder();
+            try (VertexAI vertexAI = new VertexAI(projectId, location)) {
+                String prompt = "please Provide summary for the following article \n " + summaryString;
+                GenerativeModel model = new GenerativeModel(modelName, vertexAI);
 
-		setInstance("{\r\n" + "            \"content\":  \"input: Following are the Agile Manifesto principles\r\n"
-				+ "Individuals and interactions In Agile development, self-organization and motivation are important, as are interactions like co-location and pair programming.\r\n"
-				+ "Working software Demo working software is considered the best means of communication with the customers to understand their requirements, instead of just depending on documentation.\r\n"
-				+ "\r\n" + "output: " + "   <node TEXT=\\\"Agile Manifesto principles\\\">\r\n"
-				+ "   <node TEXT=\\\"Individuals and interactions\\\">\r\n"
-				+ "      <node TEXT=\\\"Self-organization and motivation\\\"\\/>\r\n"
-				+ "      <node TEXT=\\\"Interactions like co-location and pair programming\\\"\\/>\r\n"
-				+ "    <\\/node>\r\n" + "   <node TEXT=\\\"Working software\\\">\r\n"
-				+ "      <node TEXT=\\\"Demo working software\\\"\\/>\r\n"
-				+ "      <node TEXT=\\\"Communication with the customers\\\"\\/>\r\n"
-				+ "      <node TEXT=\\\"Understanding their requirements\\\"\\/>\r\n" + "    <\\/node>\r\n"
-				+ "   <\\/node>\r\n" + "input: " + sbTemp + "\r\n" + "output:\r\n" + "\"\r\n" + "        }");
-		String parameters1 = "{\n" + "  \"temperature\":" + temperature + ",\n" + "  \"maxOutputTokens\": " + tokens
-				+ ",\n" + "  \"topP\": " + topp + ",\n" + "  \"topK\": " + topk + "\n" + "}";
-		String tempResp1 = predictTextSummarization(getInstance(), parameters1, projectId, location, publisher,
-				latestmodel);
+                GenerateContentResponse response01 = model.generateContent(prompt);
+                List<Candidate> candidate = response01.getCandidatesList();
+                for (Candidate temp : candidate) {
+                    Gson gson = new Gson();
+                    String json = gson.toJson(temp);
+                    JSONObject json1 = new JSONObject(json);
 
-		StringBuilder sb = new StringBuilder("<map version=\"1.0.1\">\r\n");
-		sb.append(" <node TEXT=\"Mind Map\">\r\n");
-		sb.append(tempResp1);
-		sb.append(" </node>\r\n");
-		sb.append("</map>\r\n");
-		Files.deleteIfExists(Paths.get("mindmapxml.mm"));
+                    JSONArray jsonArray01 = (JSONArray) json1.getJSONObject(CONTENT).get(PARTS);
+                    for (int count = 0; count < jsonArray01.length(); count++) {
+                        JSONObject jsonArray02 = jsonArray01.getJSONObject(count);
 
-		try (PrintWriter out = new PrintWriter("mindmapxml.mm")) {
-			out.println(sb.toString());
+                        String resOutput = jsonArray02.get(DATA).toString();
+                        sbTemp.append(resOutput);
+                    }
+                }
+            }
 
-		}
-		sb.setLength(0);
-		sbTemp.setLength(0);
-		responseData.append("mindmap  is created <a href=/api/mindmapdownload> click here to download</a> ");
-		log.info("mindmap Generated for the Transcript");
+            setInstance("{\n" +
+                    "            \"content\":  \"input: Following are the Agile Manifesto principles\n" +
+                    "Individuals and interactions In Agile development, self-organization and motivation are important, as are interactions like co-location and pair programming.\n" +
+                    "Working software Demo working software is considered the best means of communication with the customers to understand their requirements, instead of just depending on documentation.\n" +
+                    "\n" +
+                    "output: " +  // Add a missing double quote here
+                    "   <node TEXT=\\\"Agile Manifesto principles\\\">\n" +
+                    "   <node TEXT=\\\"Individuals and interactions\\\">\n" +
+                    "      <node TEXT=\\\"Self-organization and motivation\\\"\\/>\r\n" +
+                    "      <node TEXT=\\\"Interactions like co-location and pair programming\\\"\\/>\r\n" +
+                    "    <\\/node>\r\n" +
+                    "   <node TEXT=\\\"Working software\\\">\r\n" +
+                    "      <node TEXT=\\\"Demo working software\\\"\\/>\r\n" +
+                    "      <node TEXT=\\\"Communication with the customers\\\"\\/>\r\n" +
+                    "      <node TEXT=\\\"Understanding their requirements\\\"\\/>\r\n" +
+                    "    <\\/node>\r\n" +
+                    "   <\\/node>\r\n" +
+                    "input: " + sbTemp + "\n" +
+                    "output:\r\n" +
+                    "\"\r\n" +
+                    "        }");
 
-	}
+            StringBuilder sbTemp01 = new StringBuilder();
+            try (VertexAI vertexAI = new VertexAI(projectId, location)) {
+                String prompt = "please generate the xml content using the example given \n " + getInstance();
+                GenerativeModel model = new GenerativeModel(modelName, vertexAI);
 
-	public String predictTextSummarization(String instance, String parameters, String project, String location,
-			String publisher, String model) throws IOException {
-		String response = null;
+                GenerateContentResponse response01 = model.generateContent(prompt);
+                List<Candidate> candidate = response01.getCandidatesList();
+                for (Candidate temp : candidate) {
+                    Gson gson = new Gson();
+                    String json = gson.toJson(temp);
+                    JSONObject json1 = new JSONObject(json);
 
-		String endpoint = String.format("%s-aiplatform.googleapis.com:443", location);
-		PredictionServiceSettings predictionServiceSettings = PredictionServiceSettings.newBuilder()
-				.setEndpoint(endpoint).build();
+                    JSONArray jsonArray01 = (JSONArray) json1.getJSONObject(CONTENT).get(PARTS);
+                    for (int count = 0; count < jsonArray01.length(); count++) {
+                        JSONObject jsonArray02 = jsonArray01.getJSONObject(count);
 
-		try (PredictionServiceClient predictionServiceClient = PredictionServiceClient
-				.create(predictionServiceSettings)) {
-			final EndpointName endpointName = EndpointName.ofProjectLocationPublisherModelName(project, location,
-					publisher, model);
+                        String resOutput = jsonArray02.get(DATA).toString();
+                        sbTemp01.append(resOutput);
+                    }
+                }
+            }
 
-			Value.Builder instanceValue = Value.newBuilder();
+            StringBuilder sb = new StringBuilder("<map version=\"1.0.1\">\r\n");
+            sb.append(" <node TEXT=\"Mind Map\">\r\n");
+            sb.append(sbTemp01);
+            sb.append(" </node>\r\n");
+            sb.append("</map>\r\n");
+            Files.deleteIfExists(Paths.get("map.mm"));
 
-			JsonFormat.parser().merge(instance, instanceValue);
+            try (PrintWriter out = new PrintWriter("map.mm")) {
+                out.println(sb);
 
-			List<Value> instances = new ArrayList<>();
-			instances.add(instanceValue.build());
+            }
+            sb.setLength(0);
+            sbTemp.setLength(0);
+            responseData.append("Mind Map  is created <a href=/api/map> click here to download</a> ");
+            log.info("Mind Map Generated for the Transcript");
+        } catch (Exception exception) {
+            log.error("Exception in generating mind map  : {}", exception.getMessage(), exception);
 
-			Value.Builder parameterValueBuilder = Value.newBuilder();
-			JsonFormat.parser().merge(parameters, parameterValueBuilder);
-			Value parameterValue = parameterValueBuilder.build();
-
-			PredictResponse predictResponse = predictionServiceClient.predict(endpointName, instances, parameterValue);
-			for (Value prediction : predictResponse.getPredictionsList()) {
-				Map<String, Value> tempMap = prediction.getStructValue().getFieldsMap();
-				Set<String> temKeySet = tempMap.keySet();
-				for (String keyVal : temKeySet) {
-					if (keyVal.equals("content")) {
-						Gson gson = new Gson();
-						String json = gson.toJson(tempMap.get(keyVal));
-						JSONObject json1 = new JSONObject(json);
-						response = json1.get("kind_").toString();
-					}
-				}
-			}
-		}
-
-		return response;
-	}
-
+        }
+    }
 }

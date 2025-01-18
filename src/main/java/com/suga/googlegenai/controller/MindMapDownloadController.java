@@ -17,13 +17,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Controller
-@RequestMapping("/api/mindmapdownload")
+@RequestMapping("/api/map")
 public class MindMapDownloadController {
 
 	@GetMapping
 	public void download(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
-		Path file = Paths.get("mindmapxml.mm");
+		Path file = Paths.get("map.mm");
 
 		String contentType = Files.probeContentType(file);
 		if (contentType == null) {

@@ -1,0 +1,16 @@
+## Summary of the article "Microservices and Microservices Architecture"
+
+This white paper by The Open Group SOA Work Group defines Microservices and Microservices Architecture (MSA), explores their core principles and key characteristics, and compares MSA with Service-Oriented Architecture (SOA). 
+
+**Key points:**
+
+* **MSA is driven by the industry's need for:**
+    * Agility
+    * Cost optimization
+    * Shifts between CapEx and OpeEx
+    * Cloud computing
+    * Internet of Things (IoT)
+    * Digital enterprise transformation
+* **MSA is an enabler for these needs, but not a silver bullet.**
+* The white paper provides a recommended approach and best practices for adopting MSA.
+* It also discusses where MSA is the right fit and its role in the Enterprise Architecture portfolio. 
