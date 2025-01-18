@@ -3,13 +3,18 @@ package com.suga.googlegenai.controller;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -51,6 +56,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @RestController
 @RequestMapping(path = "/api")
 @Validated
+@Slf4j
 public class SummaryGenController implements ErrorController{
 	@org.springframework.beans.factory.annotation.Value("${genai.projectId}")
 	private String projectId;
@@ -72,7 +78,13 @@ public class SummaryGenController implements ErrorController{
 	@org.springframework.beans.factory.annotation.Value("${sum.topK}")
 	private String topk;
 
-	private String instance;
+	private static final String CONTENT="content_";
+	private static final String PARTS="parts_";
+
+
+	@Setter
+    @Getter
+    private String instance;
 	
 	 private static final String PATH = "/error";
 
@@ -96,81 +108,66 @@ public class SummaryGenController implements ErrorController{
 			@ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error", content = @Content(schema = @Schema(implementation = ErrorResponseDto.class))) })
 
 	@PostMapping("/summaryprompt")
-	public ResponseEntity<String> getSummaryPrompt(@RequestParam("files") MultipartFile[] uploadfiles,
-			HttpServletRequest request, HttpServletResponse response) throws IOException {
+	public ResponseEntity<String> getSummaryPrompt(@RequestParam("files") MultipartFile[] uploadFiles,
+												   HttpServletRequest request, HttpServletResponse response) throws IOException {
 		StringBuilder responseData = new StringBuilder();
-		StringBuilder tempVal = new StringBuilder();
-		MultipartFile[] mFiles = uploadfiles;
-		for (MultipartFile file : mFiles) {
+		StringBuilder summaryContent = new StringBuilder();
+
+		for (MultipartFile file : uploadFiles) {
 			if (!file.isEmpty()) {
 				try {
+					String fileContent = new String(file.getBytes(), StandardCharsets.UTF_8);
 
-					ByteArrayInputStream stream = new ByteArrayInputStream(file.getBytes());
-					String completeData = IOUtils.toString(stream, "UTF-8");
-					List<String> linesOfMaxSize = new ArrayList<>();
-					int i = 0;
-					int maxSize = 4000;
-
-					while (i < completeData.length()) {
-						linesOfMaxSize.add(completeData.substring(i, Math.min(i + maxSize, completeData.length())));
-						i += maxSize;
+					List<String> contentChunks = new ArrayList<>();
+					int chunkSize = 4000;
+					for (int i = 0; i < fileContent.length(); i += chunkSize) {
+						contentChunks.add(fileContent.substring(i, Math.min(i + chunkSize, fileContent.length())));
 					}
-					System.out.println("Size  of the file:" + linesOfMaxSize.size());
 
-					String resOutput = null;
+					log.info("Number of chunks: {}", contentChunks.size());
+
 					try (VertexAI vertexAI = new VertexAI(projectId, location)) {
-						for (String temVal : linesOfMaxSize) {
-							String prompt = "please Provide a short summary for the following article \n " + temVal;
+						GenerativeModel model = new GenerativeModel(modelName, vertexAI);
 
-							GenerativeModel model = new GenerativeModel(modelName, vertexAI);
+						for (String chunk : contentChunks) {
+							String prompt = "Please provide a short summary for the following article:\n" + chunk;
 
-							GenerateContentResponse response01 = model.generateContent(prompt);
-							List<Candidate> cand = response01.getCandidatesList();
-							for (Candidate temp : cand) {
+							GenerateContentResponse aiResponse = model.generateContent(prompt);
 
-								Gson gson = new Gson();
-								String json = gson.toJson(temp);
-								JSONObject json1 = new JSONObject(json);
+							for (Candidate candidate : aiResponse.getCandidatesList()) {
+								JSONObject candidateJson = new JSONObject(new Gson().toJson(candidate));
+								JSONArray parts = candidateJson.getJSONObject(CONTENT).getJSONArray(PARTS);
 
-								JSONArray jsontemp1 = (JSONArray) json1.getJSONObject("content_").get("parts_");
-								for (int i0 = 0; i0 < jsontemp1.length(); i0++) {
-									JSONObject jsontemp2 = jsontemp1.getJSONObject(i0);
-
-									resOutput = jsontemp2.get("data_").toString();
-									tempVal.append(resOutput);
+								for (int j = 0; j < parts.length(); j++) {
+									summaryContent.append(parts.getJSONObject(j).getString("data_"));
 								}
 							}
 						}
-
 					}
 
-					Files.deleteIfExists(Paths.get("summary.txt"));
+					Path summaryFilePath = Paths.get("summary.txt");
+					Files.writeString(summaryFilePath, summaryContent.toString(), StandardCharsets.UTF_8);
 
-					try (PrintWriter out = new PrintWriter("summary.txt")) {
-						out.println(tempVal);
+					responseData.append("Summary for the transcript <a href=./summarydownload>click here to download</a>")
+							.append(System.lineSeparator());
 
-					}
-
-					responseData.append(
-							"Summary for the transcript  <a href=./summarydownload> click here to download</a>");
-					responseData.append(System.getProperty("line.separator"));
-					System.out.println("Summary Generated for the Transcript");
+					log.info("Summary generated for the transcript.");
 
 				} catch (Exception exception) {
-					responseData.append(exception.toString());
-
+					log.error("Error processing file: {}", exception.getMessage(), exception);
+					responseData.append("Error: ").append(exception.getMessage()).append(System.lineSeparator());
 				}
 			}
 		}
-		responseData.append(System.getProperty("line.separator"));
-		getMom(responseData, tempVal);
-		responseData.append(System.getProperty("line.separator"));
-		getMindMap(responseData, tempVal);
 
-		System.out.println("Minutes of Meeting Generated for the Transcript");
+		getMom(responseData, summaryContent);
+		getMindMap(responseData, summaryContent);
+
+		log.info("Minutes of Meeting generated for the transcript.");
 
 		return ResponseEntity.status(HttpStatus.OK).body(responseData.toString());
 	}
+
 
 	public void getMom(StringBuilder responseData, StringBuilder summaryString) throws IOException {
 		try (VertexAI vertexAI = new VertexAI(projectId, location)) {
@@ -187,7 +184,7 @@ public class SummaryGenController implements ErrorController{
 				String json = gson.toJson(temp);
 				JSONObject json1 = new JSONObject(json);
 
-				JSONArray jsontemp1 = (JSONArray) json1.getJSONObject("content_").get("parts_");
+				JSONArray jsontemp1 = (JSONArray) json1.getJSONObject(CONTENT).get(PARTS);
 				for (int i = 0; i < jsontemp1.length(); i++) {
 					JSONObject jsontemp2 = jsontemp1.getJSONObject(i);
 
@@ -202,7 +199,7 @@ public class SummaryGenController implements ErrorController{
 		}
 		responseData.append("Minutes of Meeting  <a href=/api/momdownload> click here to download</a> ");
 
-		responseData.append(System.getProperty("line.separator"));
+		responseData.append(System.lineSeparator());
 	}
 
 	public void getMindMap(StringBuilder responseData, StringBuilder summaryString) throws IOException {
@@ -222,7 +219,7 @@ public class SummaryGenController implements ErrorController{
 				String json = gson.toJson(temp);
 				JSONObject json1 = new JSONObject(json);
 
-				JSONArray jsontemp1 = (JSONArray) json1.getJSONObject("content_").get("parts_");
+				JSONArray jsontemp1 = (JSONArray) json1.getJSONObject(CONTENT).get(PARTS);
 				for (int i0 = 0; i0 < jsontemp1.length(); i0++) {
 					JSONObject jsontemp2 = jsontemp1.getJSONObject(i0);
 
@@ -264,7 +261,7 @@ public class SummaryGenController implements ErrorController{
 		sb.setLength(0);
 		sbTemp.setLength(0);
 		responseData.append("mindmap  is created <a href=/api/mindmapdownload> click here to download</a> ");
-		System.out.println("mindmap Generated for the Transcript");
+		log.info("mindmap Generated for the Transcript");
 
 	}
 
@@ -310,11 +307,4 @@ public class SummaryGenController implements ErrorController{
 		return response;
 	}
 
-	public String getInstance() {
-		return instance;
-	}
-
-	public void setInstance(String instance) {
-		this.instance = instance;
-	}
 }
