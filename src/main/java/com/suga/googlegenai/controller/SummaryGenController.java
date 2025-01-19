@@ -1,11 +1,10 @@
 package com.suga.googlegenai.controller;
 
 import com.google.cloud.vertexai.VertexAI;
-import com.google.cloud.vertexai.api.*;
+import com.google.cloud.vertexai.api.Candidate;
+import com.google.cloud.vertexai.api.GenerateContentResponse;
 import com.google.cloud.vertexai.generativeai.preview.GenerativeModel;
 import com.google.gson.Gson;
-import com.google.protobuf.Value;
-import com.google.protobuf.util.JsonFormat;
 import com.suga.googlegenai.dto.ErrorResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -36,8 +35,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 @Tag(name = "API for Summary, MOM and Mind Map Generation", description = "Generating summary, Minutes of Meeting and mind map xml  from Meeting Transcript")
 @RestController
@@ -71,12 +68,21 @@ public class SummaryGenController implements ErrorController {
     private String instance;
 
     @RequestMapping(value = "/error")
-    public void error(HttpServletResponse response) throws IOException {
-        response.sendRedirect("/");
+    public void error(HttpServletResponse response) {
+        try {
+            response.sendRedirect("/");
+        } catch (Exception exception) {
+            log.error("Exception in send redirect :{}", exception.getMessage());
+        }
     }
 
-    public String getErrorPath() {
-        return "/error";
+    public String getErrorPath() throws Exception {
+        try {
+            return "/error";
+        } catch (Exception exception) {
+            log.error("Exception in error path :{}", exception.getMessage());
+            throw new Exception(exception.getMessage());
+        }
     }
 
 
