@@ -8,10 +8,10 @@ MAINTAINER suga.com
 WORKDIR /app
 
 # Copy the packaged Spring Boot application JAR file into the container
-COPY target/googlegenai-0.0.1-SNAPSHOT.jar googlegenai.jar
+COPY target/googlegenai-0.0.1-SNAPSHOT.war googlegenai.war
 
 # Expose the port that the Spring Boot application will run on
 EXPOSE 8080
 
 # Run the Spring Boot application when the container starts
-CMD ["java", "-jar", "googlegenai.jar"]
+CMD ["java", "-jar", "googlegenai.war"]
