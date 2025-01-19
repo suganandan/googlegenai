@@ -105,7 +105,7 @@ public class SummaryGenController implements ErrorController {
                         contentChunks.add(fileContent.substring(i, Math.min(i + chunkSize, fileContent.length())));
                     }
 
-                    log.info("Number of chunks: {}", contentChunks.size());
+                    log.info("Number of chunks available: {}", contentChunks.size());
 
                     try (VertexAI vertexAI = new VertexAI(projectId, location)) {
                         GenerativeModel model = new GenerativeModel(modelName, vertexAI);
