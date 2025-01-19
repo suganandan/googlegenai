@@ -85,7 +85,10 @@ public class SummaryGenController implements ErrorController {
         }
     }
 
-
+    @GetMapping("/test")
+    public String test() {
+        return "Welcome to GenAI Application";
+    }
     @GetMapping("/search")
     public ModelAndView getSearchAI() {
         return new ModelAndView("summary");

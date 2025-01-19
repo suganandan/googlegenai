@@ -20,4 +20,9 @@ sum:
   topP: 0.2
   topK: 10  
 
+logging:
+  level:
+    root: trace
+    org.springframework: trace
+
 
