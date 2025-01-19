@@ -17,7 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Controller
-@RequestMapping("/api/mom")
+@RequestMapping("/mom")
 public class MomDownlaodController {
 
 @GetMapping

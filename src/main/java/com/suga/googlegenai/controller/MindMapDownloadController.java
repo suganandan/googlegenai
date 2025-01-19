@@ -17,7 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Controller
-@RequestMapping("/api/map")
+@RequestMapping("/map")
 public class MindMapDownloadController {
 
 	@GetMapping

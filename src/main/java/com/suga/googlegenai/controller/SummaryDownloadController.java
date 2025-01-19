@@ -17,7 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Controller
-@RequestMapping("/api/summary")
+@RequestMapping("/summary")
 public class SummaryDownloadController {
 
 @GetMapping

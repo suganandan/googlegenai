@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOC TYPE html>
 
 <html xmlns:th="http://www.thymeleaf.org">
 
@@ -59,7 +59,7 @@
 
 			enctype : 'multipart/form-data',
 
-			url : "/api/summary",
+			url : "/summary",
 
 			data : data,
 

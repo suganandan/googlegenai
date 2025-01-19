@@ -38,7 +38,7 @@ import java.util.List;
 
 @Tag(name = "API for Summary, MOM and Mind Map Generation", description = "Generating summary, Minutes of Meeting and mind map xml  from Meeting Transcript")
 @RestController
-@RequestMapping(path = "/api")
+//@RequestMapping(path = "/api")
 @Validated
 @Slf4j
 public class SummaryGenController implements ErrorController {
@@ -91,7 +91,7 @@ public class SummaryGenController implements ErrorController {
     }
     @GetMapping("/search")
     public ModelAndView getSearchAI() {
-        return new ModelAndView("summary");
+        return new ModelAndView("/summary");
     }
 
     @Operation(summary = "Generate Summary from Transcript", description = "API to generate a summary based on the uploaded transcript files. Accepts multiple files as input and returns the generated summary.")
@@ -182,7 +182,7 @@ public class SummaryGenController implements ErrorController {
                 }
             }
         }
-        responseData.append("Minutes of Meeting  <a href=/api/mom> click here to download</a> ");
+        responseData.append("Minutes of Meeting  <a href=/mom> click here to download</a> ");
         responseData.append(System.lineSeparator());
     }
 
@@ -267,7 +267,7 @@ public class SummaryGenController implements ErrorController {
             }
             sb.setLength(0);
             sbTemp.setLength(0);
-            responseData.append("Mind Map  is created <a href=/api/map> click here to download</a> ");
+            responseData.append("Mind Map  is created <a href=/map> click here to download</a> ");
             log.info("Mind Map Generated for the Transcript");
         } catch (Exception exception) {
             log.error("Exception in generating mind map  : {}", exception.getMessage(), exception);
